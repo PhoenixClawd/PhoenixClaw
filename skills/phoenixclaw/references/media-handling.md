@@ -7,12 +7,15 @@
 | **Discord** | Attachment | Webhook or bot listener, handles multiple attachments in one message |
 | **CLI** | Local Path | User provides file path via command line |
 
+> [!important] Media & Memory Tools
+> Note: `memory_get` and `memory_search` return text only. Image metadata and binary references must be sourced from session logs (JSONL) or the local `assets` directory.
+
 ### Photo Processing Workflow
 
 1. **Receive**: Capture media from the active channel (Telegram/WhatsApp/Discord/CLI).
 2. **Buffer**: Store the raw media in a transient memory buffer with metadata (timestamp, source).
 3. **Detect**: Cron job or trigger detects unresolved media references in the message stream.
-4. **Vision Analysis**: AI processes the photo to extract a descriptivealt-text (e.g., "Spicy miso ramen with soft-boiled egg").
+4. **Vision Analysis**: AI processes the photo to extract a descriptive alt-text (e.g., "Spicy miso ramen with soft-boiled egg").
 5. **Relocate**: Move file from transient buffer to the permanent assets directory.
 6. **Rename**: Apply standard naming convention to the file.
 7. **Embed**: Generate the Obsidian-style markdown link and insert into the journal with the appropriate layout.

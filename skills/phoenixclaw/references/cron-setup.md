@@ -57,3 +57,4 @@ If journals are not appearing as expected, check the following:
    ```
 4. **Timezone Mismatch**: If jobs run at unexpected hours, verify the detected timezone with `openclaw cron list` and consider hardcoding the timezone if `auto` fails.
 5. **Tool Access**: Ensure the `isolated` session has proper permissions to read the memory directories and write to the journal storage.
+6. **Memory Search Availability**: If `memory_search` is unavailable due to a missing embeddings provider (OpenAI/Gemini/Local), journaling will still continue by scanning daily memory and session logs directly. For cross-day pattern recognition and long-term recall, consider configuring an embeddings provider.
