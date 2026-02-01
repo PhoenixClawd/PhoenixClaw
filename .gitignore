@@ -1,0 +1,20 @@
+# Build and distribution
+dist/
+
+# Sisyphus and Agent files
+.sisyphus/
+.openclaw/
+.agent/
+
+# Python environment
+__pycache__/
+*.pyc
+
+# System files
+.DS_Store
+
+# Environment variables
+.env
+
+# Test outputs
+tests/actual-output/
