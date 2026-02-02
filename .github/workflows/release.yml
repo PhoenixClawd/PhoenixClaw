@@ -1,0 +1,150 @@
+name: Release Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/*/SKILL.md'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      core_changed: ${{ steps.check.outputs.core_changed }}
+      core_version: ${{ steps.check.outputs.core_version }}
+      ledger_changed: ${{ steps.check.outputs.ledger_changed }}
+      ledger_version: ${{ steps.check.outputs.ledger_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check version changes
+        id: check
+        run: |
+          # Function to extract version from SKILL.md
+          get_version() {
+            local file="$1"
+            if [ -f "$file" ]; then
+              grep '^version:' "$file" | head -1 | sed 's/version:[[:space:]]*//'
+            else
+              echo ""
+            fi
+          }
+          
+          # Get current versions
+          CORE_CURRENT=$(get_version "skills/phoenixclaw/SKILL.md")
+          LEDGER_CURRENT=$(get_version "skills/phoenixclaw-ledger/SKILL.md")
+          
+          # Get previous versions
+          git checkout HEAD~1 -- skills/phoenixclaw/SKILL.md 2>/dev/null || true
+          git checkout HEAD~1 -- skills/phoenixclaw-ledger/SKILL.md 2>/dev/null || true
+          
+          CORE_PREV=$(get_version "skills/phoenixclaw/SKILL.md")
+          LEDGER_PREV=$(get_version "skills/phoenixclaw-ledger/SKILL.md")
+          
+          # Restore current versions
+          git checkout HEAD -- skills/phoenixclaw/SKILL.md 2>/dev/null || true
+          git checkout HEAD -- skills/phoenixclaw-ledger/SKILL.md 2>/dev/null || true
+          
+          # Check if versions changed
+          echo "Core: $CORE_PREV -> $CORE_CURRENT"
+          echo "Ledger: $LEDGER_PREV -> $LEDGER_CURRENT"
+          
+          if [ "$CORE_CURRENT" != "$CORE_PREV" ] && [ -n "$CORE_CURRENT" ]; then
+            echo "core_changed=true" >> $GITHUB_OUTPUT
+            echo "core_version=$CORE_CURRENT" >> $GITHUB_OUTPUT
+          else
+            echo "core_changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "$LEDGER_CURRENT" != "$LEDGER_PREV" ] && [ -n "$LEDGER_CURRENT" ]; then
+            echo "ledger_changed=true" >> $GITHUB_OUTPUT
+            echo "ledger_version=$LEDGER_CURRENT" >> $GITHUB_OUTPUT
+          else
+            echo "ledger_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  release-core:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.core_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Package skill
+        run: |
+          mkdir -p dist
+          # Simple packaging: zip the skill directory
+          cd skills
+          zip -r ../dist/phoenixclaw.skill phoenixclaw/
+          cd ..
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: core-v${{ needs.detect-changes.outputs.core_version }}
+          name: PhoenixClaw Core v${{ needs.detect-changes.outputs.core_version }}
+          body: |
+            ## PhoenixClaw Core v${{ needs.detect-changes.outputs.core_version }}
+            
+            Passive journaling skill for OpenClaw that transforms daily conversations into Obsidian-compatible journals.
+            
+            ### Installation
+            ```bash
+            openclaw skill install phoenixclaw.skill
+            ```
+          files: dist/phoenixclaw.skill
+          generate_release_notes: true
+
+  release-ledger:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ledger_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Package skill
+        run: |
+          mkdir -p dist
+          # Simple packaging: zip the skill directory
+          cd skills
+          zip -r ../dist/phoenixclaw-ledger.skill phoenixclaw-ledger/
+          cd ..
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ledger-v${{ needs.detect-changes.outputs.ledger_version }}
+          name: PhoenixClaw Ledger v${{ needs.detect-changes.outputs.ledger_version }}
+          body: |
+            ## PhoenixClaw Ledger v${{ needs.detect-changes.outputs.ledger_version }}
+            
+            Financial tracking plugin for PhoenixClaw Core. Automatically detects expenses, extracts payment screenshots, and generates financial reports.
+            
+            **Requires:** PhoenixClaw Core v0.0.3+
+            
+            ### Installation
+            ```bash
+            # Install core first if not installed
+            openclaw skill install phoenixclaw.skill
+            
+            # Install ledger plugin
+            openclaw skill install phoenixclaw-ledger.skill
+            ```
+          files: dist/phoenixclaw-ledger.skill
+          generate_release_notes: true

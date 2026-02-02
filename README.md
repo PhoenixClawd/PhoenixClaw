@@ -262,6 +262,37 @@ Traditional journaling fails because of friction. PhoenixClaw removes all fricti
 - `assets/`: Template files for generated content
 - `AGENTS.md`: Agent instructions for development
 
+## Releasing
+
+PhoenixClaw uses automated releases via GitHub Actions.
+
+### How It Works
+
+1. Update the `version:` field in `skills/phoenixclaw/SKILL.md` or `skills/phoenixclaw-ledger/SKILL.md`
+2. Commit and push to `main` (or merge a PR)
+3. GitHub Actions automatically:
+   - Detects which skills had version changes
+   - Packages only the changed skills
+   - Creates GitHub Releases with tags (`core-vX.Y.Z` or `ledger-vX.Y.Z`)
+   - Uploads `.skill` files as release assets
+
+### Version Format
+
+- Core: `core-v0.0.3`, `core-v0.1.0`, `core-v1.0.0`
+- Ledger: `ledger-v0.0.1`, `ledger-v0.1.0`, `ledger-v1.0.0`
+
+Each skill is versioned independently.
+
+### Manual Release (if needed)
+
+```bash
+# Package
+python ~/.agents/skills/skill-creator/scripts/package_skill.py skills/phoenixclaw dist/
+
+# Create release via gh CLI
+gh release create core-v0.0.3 dist/phoenixclaw.skill --title "PhoenixClaw Core v0.0.3"
+```
+
 ## Contributing
 
 This is a skill for the OpenClaw ecosystem. Contributions welcome!
