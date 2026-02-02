@@ -1,6 +1,5 @@
 ---
 name: phoenixclaw
-version: 0.0.5
 description: |
   Passive journaling skill that scans daily conversations via cron to generate
   markdown journals using semantic understanding.
@@ -9,6 +8,8 @@ description: |
   - User requests journaling ("Show me my journal", "What did I do today?")
   - User asks for pattern analysis ("Analyze my patterns", "How am I doing?")
   - User requests summaries ("Generate weekly/monthly summary")
+metadata:
+  version: 0.0.6
 ---
 
 # PhoenixClaw: Zero-Tag Passive Journaling
@@ -51,6 +52,7 @@ PhoenixClaw follows a structured pipeline to ensure consistency and depth:
    - `post-pattern-analysis` → after patterns detected
    - `journal-generation` → plugins inject custom sections
    - `post-journal` → after journal complete
+
 
 6. **Journal Generation:** Synthesize the day's events into a beautiful Markdown file using `assets/daily-template.md`. Follow the visual guidelines in `references/visual-design.md`. **Include all plugin-generated sections** at their declared `section_order` positions.
 
