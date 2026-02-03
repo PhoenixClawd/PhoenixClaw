@@ -38,11 +38,21 @@ PhoenixClaw follows a structured pipeline to ensure consistency and depth:
 2. **Context Retrieval:** 
    - Call `memory_get` for the current day's memory
    - **CRITICAL: Scan ALL raw session logs** for the current day — session files are often split across multiple files. Use `ls -la` to list files and read **all files modified today**. Common paths (implementation-dependent): `~/.openclaw/sessions/*.jsonl` or `.agent/sessions/`
+   - **EXTRACT IMAGES FROM SESSION LOGS**: Session logs contain `type: "image"` entries with file paths. You MUST:
+     1. Find all image entries (e.g., `"type":"image"`)
+     2. Extract the `file_path` or `url` fields
+     3. Copy files into `assets/YYYY-MM-DD/`
+     4. Rename with descriptive names when possible
    - **Why session logs are mandatory**: `memory_get` returns **text only**. Image metadata, photo references, and media attachments are **only available in session logs**. Skipping session logs = missing all photos.
    - If memory is sparse, reconstruct context from session logs, then update memory
    - Incorporate historical context via `memory_search` (skip if embeddings unavailable)
 
 3. **Moment Identification:** Identify "journal-worthy" content: critical decisions, emotional shifts, milestones, or shared media. See `references/media-handling.md` for photo processing. This step generates the `moments` data structure that plugins depend on.
+   **Image Processing (CRITICAL)**:
+   - For each extracted image, generate descriptive alt-text via Vision Analysis
+   - Categorize images (food, selfie, screenshot, document, etc.)
+   - Match images to moments (e.g., breakfast photo → breakfast moment)
+   - Store image metadata with moments for journal embedding
 
 4. **Pattern Recognition:** Detect recurring themes, mood fluctuations, and energy levels. Map these to growth opportunities using `references/skill-recommendations.md`.
 
@@ -55,6 +65,9 @@ PhoenixClaw follows a structured pipeline to ensure consistency and depth:
 
 
 6. **Journal Generation:** Synthesize the day's events into a beautiful Markdown file using `assets/daily-template.md`. Follow the visual guidelines in `references/visual-design.md`. **Include all plugin-generated sections** at their declared `section_order` positions.
+   - **Embed curated images only**, not every image. Prioritize highlights and moments.
+   - **Route finance screenshots to Ledger** sections (receipts, invoices, transaction proofs).
+   - Use Obsidian format from `references/media-handling.md` with descriptive captions.
 
 7. **Timeline Integration:** If significant events occurred, append them to the master index in `timeline.md` using the format from `assets/timeline-template.md` and `references/obsidian-format.md`.
 
