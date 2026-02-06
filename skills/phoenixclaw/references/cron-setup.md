@@ -11,7 +11,7 @@ openclaw cron add \
   --session isolated \
   --message "Execute PhoenixClaw with COMPLETE 9-step Core Workflow. CRITICAL STEPS:
 1. Load config
-2. memory_get + Scan ALL session logs modified today (find ~/.openclaw/sessions -mtime 0)
+2. memory_get + Scan session logs and filter by each message timestamp for today (not file mtime)
 3. Identify moments (decisions, emotions, milestones, photos) -> creates 'moments' data
 4. Detect patterns
 5. Execute ALL plugins at hook points (Ledger runs at post-moment-analysis)
@@ -60,8 +60,10 @@ openclaw cron remove "PhoenixClaw nightly reflection"
 After cron runs, verify the full workflow executed:
 
 ```bash
-# 1. Check session files were scanned (files modified today)
-find ~/.openclaw/sessions -name "*.jsonl" -mtime 0 | wc -l
+# 1. Check target-day messages were scanned (by message timestamp)
+TARGET_DAY="$(date +%Y-%m-%d)"
+find ~/.openclaw/sessions -name "*.jsonl" -print0 |
+  xargs -0 jq -cr --arg day "$TARGET_DAY" 'select((.timestamp // "")[:10] == $day)' | wc -l
 
 # 2. Check images were extracted (if any existed)
 ls -la ~/PhoenixClaw/Journal/assets/$(date +%Y-%m-%d)/ 2>/dev/null || echo "No assets dir"

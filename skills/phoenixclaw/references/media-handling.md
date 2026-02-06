@@ -22,20 +22,29 @@
 
 ### Image Extraction Commands
 
-**Find session files modified today:**
+**Filter session messages by target day (not file mtime):**
 ```bash
-# Step 1: Identify today's session files (by modification time)
-find ~/.openclaw/sessions -name "*.jsonl" -mtime 0
+# Step 1: Define target day
+TARGET_DAY="$(date +%Y-%m-%d)"
+
+# Step 2: Read session files and keep only messages from TARGET_DAY
+find ~/.openclaw/sessions -name "*.jsonl" -print0 |
+  xargs -0 jq -cr --arg day "$TARGET_DAY" '
+    select((.timestamp // "")[:10] == $day)
+  '
 ```
 
-**Extract image entries from today's sessions:**
+**Extract image entries from target-day messages:**
 ```bash
-# Step 2: Find images in today's session files only
-find ~/.openclaw/sessions -name "*.jsonl" -mtime 0 -exec grep -l '"type":"image"' {} \;
-
-# Step 3: Extract image paths
-find ~/.openclaw/sessions -name "*.jsonl" -mtime 0 -exec grep -h '"type":"image"' {} \; | jq -r '.file_path // .url'
+# Keep image entries whose message timestamp is in TARGET_DAY
+find ~/.openclaw/sessions -name "*.jsonl" -print0 |
+  xargs -0 jq -r --arg day "$TARGET_DAY" '
+    select((.timestamp // "")[:10] == $day and .type == "image")
+    | (.file_path // .url)
+  '
 ```
+
+> Do not classify images by session file modification time. Always classify by each image message's `timestamp`.
 
 **Copy images to journal assets:**
 ```bash

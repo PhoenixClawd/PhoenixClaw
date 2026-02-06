@@ -153,7 +153,7 @@ language: auto    # or "zh-CN"
 > **CRITICAL: Execute ALL 9 steps regardless of invocation method (cron OR manual)**
 
 1. Load config or trigger onboarding
-2. `memory_get` for today AND **scan ALL session logs** (session files are often split — read all files modified today). Session logs contain image metadata that `memory_get` cannot provide.
+2. `memory_get` for today AND **scan ALL session logs** (session files are often split). Filter media by each message `timestamp` within the target date range; do not classify by session file `mtime` alone. Session logs contain image metadata that `memory_get` cannot provide.
 3. Identify moments: decisions, emotions, milestones, photos → generates `moments` data structure
 4. Detect patterns: themes, mood shifts, energy
 5. **Execute plugins** at their hook points (Ledger runs at `post-moment-analysis`)
@@ -197,7 +197,7 @@ language: auto    # or "zh-CN"
 
 ## Error Handling
 
-**Memory & session scan:** Always scan session logs (`~/.openclaw/sessions/*.jsonl`) alongside daily memory; if `memory_get` is sparse, use session logs to reconstruct context, then update daily memory.
+**Memory & session scan:** Always scan session logs (`~/.openclaw/sessions/*.jsonl`) alongside daily memory. Use per-message `timestamp` filtering for target-day extraction (especially images); if `memory_get` is sparse, use session logs to reconstruct context, then update daily memory.
 
 **Embeddings unavailable:** Continue with daily memory, skip cross-day pattern search
 
