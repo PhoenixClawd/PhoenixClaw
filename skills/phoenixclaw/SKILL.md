@@ -9,7 +9,7 @@ description: |
   - User asks for pattern analysis ("Analyze my patterns", "How am I doing?")
   - User requests summaries ("Generate weekly/monthly summary")
 metadata:
-  version: 0.0.9
+  version: 0.0.10
 ---
 
 # PhoenixClaw: Zero-Tag Passive Journaling
