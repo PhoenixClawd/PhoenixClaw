@@ -1,0 +1,585 @@
+/* ============================================
+   OpenClaw Visual - Base Styles
+   ============================================ */
+
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Card Base */
+.card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ============================================
+   Quote Card Styles
+   ============================================ */
+.quote-card {
+  width: 800px;
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  text-align: center;
+}
+
+/* Theme Colors */
+.quote-card.theme-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.quote-card.theme-blue {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.quote-card.theme-orange {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+.quote-card.theme-green {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.quote-card.theme-dark {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  color: white;
+}
+
+.quote-card .card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.quote-mark {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 120px;
+  line-height: 1;
+  opacity: 0.3;
+  position: absolute;
+}
+
+.quote-mark.left {
+  top: -40px;
+  left: -20px;
+}
+
+.quote-mark.right {
+  bottom: -60px;
+  right: -20px;
+}
+
+.quote-text {
+  font-family: 'LXGW WenKai', 'Noto Sans SC', serif;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 40px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.quote-author {
+  font-size: 24px;
+  opacity: 0.9;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+.quote-card .card-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.quote-card .decorator {
+  width: 60px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
+.quote-card .date {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+/* ============================================
+   Moment Card Styles
+   ============================================ */
+.moment-card {
+  width: 800px;
+  height: 1000px;
+  background: #fafafa;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.moment-card .image-container {
+  width: 100%;
+  height: 60%;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+}
+
+.moment-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.moment-card .card-content {
+  padding: 40px;
+  height: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 16px;
+  color: #666;
+  width: fit-content;
+}
+
+.time-icon {
+  font-size: 18px;
+}
+
+.moment-card .description {
+  font-size: 24px;
+  line-height: 1.6;
+  color: #333;
+  flex: 1;
+}
+
+.mood-badge {
+  font-size: 32px;
+  align-self: flex-end;
+}
+
+/* ============================================
+   Daily Journal Styles
+   ============================================ */
+.journal-card {
+  width: 800px;
+  min-height: 1200px;
+  background: #fefcf8;
+  background-image:
+    linear-gradient(90deg, rgba(200, 180, 160, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(200, 180, 160, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 50px;
+  font-family: 'LXGW WenKai', 'Noto Sans SC', serif;
+}
+
+.journal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px dashed rgba(139, 115, 85, 0.2);
+}
+
+.date-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-icon {
+  font-size: 28px;
+}
+
+.date-text {
+  font-size: 28px;
+  font-weight: 600;
+  color: #5d4e37;
+}
+
+.weekday {
+  font-size: 18px;
+  color: #8b7355;
+  margin-left: 10px;
+}
+
+.meta-section {
+  display: flex;
+  gap: 20px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-icon {
+  font-size: 24px;
+}
+
+.meta-label {
+  font-size: 14px;
+  color: #8b7355;
+}
+
+.divider {
+  text-align: center;
+  color: #c4b5a0;
+  font-size: 14px;
+  margin: 20px 0;
+  letter-spacing: 10px;
+}
+
+.section {
+  margin: 30px 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #5d4e37;
+  margin-bottom: 15px;
+}
+
+.section-icon {
+  font-size: 22px;
+}
+
+.section-content {
+  padding-left: 32px;
+  color: #4a4a4a;
+  line-height: 1.8;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.highlight-item .bullet {
+  color: #d4a574;
+  font-size: 20px;
+}
+
+.reflections, .growth {
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+.journal-footer {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(139, 115, 85, 0.2);
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 14px;
+  color: #b8a99a;
+  font-style: italic;
+}
+
+/* ============================================
+   Social Share Styles
+   ============================================ */
+.social-card {
+  width: 1200px;
+  height: 630px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 80px;
+  position: relative;
+}
+
+.social-card.theme-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.social-card.theme-blue {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.social-card.theme-orange {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+.social-card.theme-green {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.social-card .card-content {
+  position: relative;
+  z-index: 2;
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.headline {
+  font-family: 'LXGW WenKai', 'Noto Sans SC', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  font-size: 28px;
+  opacity: 0.9;
+  margin-bottom: 40px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin: 40px 0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-icon {
+  font-size: 36px;
+}
+
+.stat-value {
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.social-card .card-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 60px;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* ============================================
+   Dashboard Styles
+   ============================================ */
+.dashboard-card {
+  width: 1200px;
+  height: 800px;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 50px;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.header-icon {
+  font-size: 32px;
+}
+
+.header-date {
+  font-size: 18px;
+  color: #888;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-icon-large {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.stat-desc {
+  font-size: 14px;
+  color: #888;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.chart-container {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-title {
+  font-size: 16px;
+  color: #aaa;
+  margin-bottom: 15px;
+}
+
+.mood-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 100px;
+  gap: 8px;
+}
+
+.mood-bar {
+  flex: 1;
+  background: linear-gradient(to top, #667eea, #764ba2);
+  border-radius: 4px 4px 0 0;
+  min-height: 20px;
+}
+
+.timeline-section {
+  margin-top: 30px;
+}
+
+.timeline-section .section-title {
+  color: #aaa;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.timeline {
+  display: flex;
+  gap: 30px;
+  overflow-x: auto;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+  text-align: center;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  background: #667eea;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.timeline-content {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.dashboard-footer {
+  position: absolute;
+  bottom: 30px;
+  right: 50px;
+  font-size: 14px;
+  color: #555;
+}

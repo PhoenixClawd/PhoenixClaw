@@ -1,0 +1,31 @@
+<!-- Social Share Template - 社交媒体卡片 -->
+<!-- Size: 1200x630px -->
+<!-- Usage: 分享亮点/成就 -->
+
+<div class="card social-card theme-{{THEME}}">
+  <div class="card-content">
+    <div class="badge">✨ {{TITLE}}</div>
+    <h1 class="headline">{{HEADLINE}}</h1>
+    <p class="subtitle">{{SUBTITLE}}</p>
+
+    {{#STATS}}
+    <div class="stats-row">
+      {{#STATS_LIST}}
+      <div class="stat-item">
+        <div class="stat-icon">{{ICON}}</div>
+        <div class="stat-value">{{VALUE}}</div>
+        <div class="stat-label">{{LABEL}}</div>
+      </div>
+      {{/STATS_LIST}}
+    </div>
+    {{/STATS}}
+
+    <div class="card-footer">
+      {{#DATE}}
+      <div class="date">{{DATE}}</div>
+      {{/DATE}}
+      <div class="brand">OpenClaw Visual</div>
+    </div>
+  </div>
+  <div class="gradient-overlay"></div>
+</div>

@@ -1,0 +1,21 @@
+<!-- Moment Card Template - 瞬间/时刻卡片 -->
+<!-- Size: 800x1000px -->
+<!-- Usage: 单张照片 + 描述 -->
+
+<div class="card moment-card">
+  {{#IMAGE_URL}}
+  <div class="image-container">
+    <img src="{{IMAGE_URL}}" alt="moment" class="moment-image" />
+  </div>
+  {{/IMAGE_URL}}
+  <div class="card-content">
+    <div class="time-badge">
+      <span class="time-icon">🕐</span>
+      <span class="time-text">{{TIME}}</span>
+    </div>
+    <p class="description">{{DESCRIPTION}}</p>
+    {{#MOOD}}
+    <div class="mood-badge">{{MOOD}}</div>
+    {{/MOOD}}
+  </div>
+</div>
