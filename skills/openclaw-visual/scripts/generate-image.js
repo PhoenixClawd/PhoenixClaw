@@ -23,8 +23,8 @@ function parseArgs() {
     content: '{}',
     output: './output.png',
     renderer: 'auto', // auto | nodejs | playwright
-    width: 800,
-    height: 800
+    width: null,  // null means use template-specific defaults
+    height: null  // null means use template-specific defaults
   };
 
   for (let i = 0; i < args.length; i += 2) {
