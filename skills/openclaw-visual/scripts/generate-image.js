@@ -58,38 +58,60 @@ function readCSS() {
   return fs.readFileSync(cssPath, 'utf-8');
 }
 
-// Simple Mustache-style template rendering with array support
+// Simple Mustache-style template rendering with array and inverted conditional support
 function renderTemplate(template, data) {
   let result = template;
 
-  // Handle {{#key}}...{{/key}} blocks (conditionals and arrays)
-  result = result.replace(/\{\{#([\w.]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, key, content) => {
-    const value = data[key];
+  // Process blocks recursively until no more changes
+  let changed;
+  do {
+    changed = false;
 
-    // If value doesn't exist, return empty
-    if (!value) return '';
+    // Handle {{^key}}...{{/key}} blocks (inverted conditionals - show if falsy or empty array)
+    result = result.replace(/\{\{\^([\w.]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, key, content) => {
+      const value = data[key];
+      const shouldShow = !value || (Array.isArray(value) && value.length === 0);
+      if (shouldShow) {
+        changed = true;
+        // Process nested blocks in the content
+        return renderTemplate(content, data);
+      } else {
+        changed = true;
+        return '';
+      }
+    });
 
-    // If value is an array, iterate over it
-    if (Array.isArray(value)) {
-      return value.map(item => {
-        if (typeof item === 'object' && item !== null) {
-          // For object arrays, render with object properties
-          return renderTemplate(content, item);
-        } else {
-          // For primitive arrays, replace {{.}} with the item
-          return renderTemplate(content, { '.': item, ...data });
-        }
-      }).join('');
-    }
+    // Handle {{#key}}...{{/key}} blocks (conditionals and arrays)
+    result = result.replace(/\{\{#([\w.]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, key, content) => {
+      const value = data[key];
 
-    // For boolean/objects, just render the content once
-    if (typeof value === 'object' && value !== null) {
-      return renderTemplate(content, value);
-    }
+      // If value doesn't exist, return empty
+      if (!value) return '';
 
-    // For truthy primitives, render content
-    return content;
-  });
+      changed = true;
+
+      // If value is an array, iterate over it
+      if (Array.isArray(value)) {
+        return value.map(item => {
+          if (typeof item === 'object' && item !== null) {
+            // For object arrays, render with object properties
+            return renderTemplate(content, item);
+          } else {
+            // For primitive arrays, replace {{.}} with the item
+            return renderTemplate(content, { '.': item, ...data });
+          }
+        }).join('');
+      }
+
+      // For boolean/objects, just render the content once
+      if (typeof value === 'object' && value !== null) {
+        return renderTemplate(content, value);
+      }
+
+      // For truthy primitives, render content
+      return renderTemplate(content, data);
+    });
+  } while (changed);
 
   // Handle {{key}} and {{.}} variables
   result = result.replace(/\{\{([\w.]+)\}\}/g, (match, key) => {
