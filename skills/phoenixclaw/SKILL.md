@@ -9,7 +9,7 @@ description: |
   - User asks for pattern analysis ("Analyze my patterns", "How am I doing?")
   - User requests summaries ("Generate weekly/monthly summary")
 metadata:
-  version: 0.0.14
+  version: 0.0.15
 ---
 
 # PhoenixClaw: Zero-Tag Passive Journaling
@@ -145,6 +145,35 @@ PY
 PhoenixClaw is designed to run without user intervention. It utilizes OpenClaw's built-in cron system to trigger its analysis daily at 10:00 PM local time (0 22 * * *).
 - Setup details can be found in `references/cron-setup.md`.
 - **Mode:** Primarily Passive. The AI proactively summarizes the day's activities without being asked.
+
+### Rolling Journal Window (NEW)
+To solve the 22:00-24:00 content loss issue, PhoenixClaw now supports a **rolling journal window** mechanism:
+
+**Problem**: Fixed 24-hour window (00:00-22:00) misses content between 22:00-24:00 when journal is generated at 22:00.
+
+**Solution**: `scripts/rolling-journal.js` scans from **last journal time → now** instead of fixed daily boundaries.
+
+**Features**:
+- Configurable schedule hour (default: 22:00, customizable via `~/.phoenixclaw/config.yaml`)
+- Rolling window: No content loss even if generation time varies
+- Backward compatible with existing `late-night-supplement.js`
+
+**Configuration** (`~/.phoenixclaw/config.yaml`):
+```yaml
+schedule:
+  hour: 22        # Journal generation time
+  minute: 0
+  rolling_window: true   # Enable rolling window (recommended)
+```
+
+**Usage**:
+```bash
+# Default: generate from last journal to now
+node scripts/rolling-journal.js
+
+# Specific date
+node scripts/rolling-journal.js 2026-02-12
+```
 
 ## 💬 Explicit Triggers
 
