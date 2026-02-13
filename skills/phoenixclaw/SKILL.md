@@ -9,7 +9,7 @@ description: |
   - User asks for pattern analysis ("Analyze my patterns", "How am I doing?")
   - User requests summaries ("Generate weekly/monthly summary")
 metadata:
-  version: 0.0.12
+  version: 0.0.13
 ---
 
 # PhoenixClaw: Zero-Tag Passive Journaling
@@ -74,6 +74,24 @@ PY
       5. Rename with descriptive names when possible
     - **Why session logs are mandatory**: `memory_get` returns **text only**. Image metadata, photo references, and media attachments are **only available in session logs**. Skipping session logs = missing all photos.
     - **Activity signal quality**: Do not treat heartbeat/cron system noise as user activity. Extract user/assistant conversational content and media events first, then classify moments.
+    - **FILTER HEARTBEAT MESSAGES (CRITICAL)**: Session logs contain system heartbeat messages that MUST be excluded from journaling. When scanning messages, SKIP any message matching these criteria:
+      1. **User heartbeat prompts**: Messages containing "Read HEARTBEAT.md" AND "reply HEARTBEAT_OK"
+      2. **Assistant heartbeat responses**: Messages containing ONLY "HEARTBEAT_OK" (with optional leading/trailing whitespace)
+      3. **Cron system messages**: Messages with role "system" or "cron" containing job execution summaries (e.g., "Cron job completed", "A cron job")
+      
+      Example jq filter to exclude heartbeats:
+      ```jq
+      # Exclude heartbeat messages
+      | select(
+          (.message.content? | type == "array" and 
+            (.message.content | map(.text?) | join("") | 
+              test("Read HEARTBEAT\.md"; "i") | not))
+          and
+          (.message.content? | type == "array" and 
+            (.message.content | map(.text?) | join("") | 
+              test("^\\s*HEARTBEAT_OK\\s*$"; "i") | not))
+        )
+      ```
     - **Edge case - Midnight boundary**: For late-night activity that spans midnight, expand the **timestamp** range to include spillover windows (for example, previous day 23:00-24:00) and still filter per-message by `timestamp`.
    - **Merge sources:** Combine content from both memory files and session logs. Memory files capture explicit user reflections; session logs capture conversational flow and media. Use both to build complete context.
    - **Fallback:** If memory is sparse, reconstruct context from session logs, then update memory so future runs use the enriched memory. Incorporate historical context via `memory_search` (skip if embeddings unavailable)
