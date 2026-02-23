@@ -290,9 +290,11 @@ if (require.main === module) {
   const targetDate = process.argv[2] || getLocalDate(timezone);
   const journalPath = process.argv[3] || `${process.env.HOME}/PhoenixClaw/Journal`;
   
-  // Scan both session roots as per project workflow
+  // Scan all known session roots as per project workflow
   const sessionDirs = [
     `${process.env.HOME}/.openclaw/sessions`,
+    `${process.env.HOME}/.openclaw/agents`,
+    `${process.env.HOME}/.openclaw/cron/runs`,
     `${process.env.HOME}/.agent/sessions`
   ].filter(dir => fs.existsSync(dir));
   

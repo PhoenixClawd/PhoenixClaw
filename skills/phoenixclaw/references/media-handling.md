@@ -42,8 +42,11 @@ print(int(start.timestamp()), int(end.timestamp()))
 PY
 )
 
-# Step 3: Read all session files from both locations and keep only messages inside TARGET_DAY
-for dir in "$HOME/.openclaw/sessions" "$HOME/.agent/sessions"; do
+# Step 3: Read all session files from ALL known locations and keep only messages inside TARGET_DAY
+for dir in "$HOME/.openclaw/sessions" \
+           "$HOME/.openclaw/agents" \
+           "$HOME/.openclaw/cron/runs" \
+           "$HOME/.agent/sessions"; do
   [ -d "$dir" ] || continue
   find "$dir" -name "*.jsonl" -print0
 done |
@@ -57,7 +60,10 @@ done |
 **Extract image entries from target-day messages:**
 ```bash
 # Keep image entries whose message timestamp is in TARGET_DAY
-for dir in "$HOME/.openclaw/sessions" "$HOME/.agent/sessions"; do
+for dir in "$HOME/.openclaw/sessions" \
+           "$HOME/.openclaw/agents" \
+           "$HOME/.openclaw/cron/runs" \
+           "$HOME/.agent/sessions"; do
   [ -d "$dir" ] || continue
   find "$dir" -name "*.jsonl" -print0
 done |
