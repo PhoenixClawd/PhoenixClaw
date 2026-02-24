@@ -21,7 +21,7 @@ openclaw cron add \
 NEVER skip session log scanning - images are ONLY there. NEVER skip step 3 - plugins depend on moments data."
 ```
 
-> **Memory & Session Scan**: Always scan session logs (`~/.openclaw/sessions/*.jsonl` or `.agent/sessions/`) alongside daily memory to capture in-progress activity. If daily memory is missing or sparse, use session logs to reconstruct context, then update daily memory.
+> **Memory & Session Scan**: Always scan session logs from all known directories (`~/.openclaw/sessions/`, `~/.openclaw/agents/*/sessions/`, `~/.openclaw/cron/runs/`, `~/.agent/sessions/`) alongside daily memory to capture in-progress activity. Use recursive scanning to find `.jsonl` files in nested subdirectories. If daily memory is missing or sparse, use session logs to reconstruct context, then update daily memory.
 
 ### Configuration Details
 - **--name**: Unique identifier for the job. Useful for management.
@@ -77,7 +77,10 @@ print(int(start.timestamp()), int(end.timestamp()))
 PY
 )
 
-for dir in "$HOME/.openclaw/sessions" "$HOME/.agent/sessions"; do
+for dir in "$HOME/.openclaw/sessions" \
+           "$HOME/.openclaw/agents" \
+           "$HOME/.openclaw/cron/runs" \
+           "$HOME/.agent/sessions"; do
   [ -d "$dir" ] || continue
   find "$dir" -name "*.jsonl" -print0
 done |

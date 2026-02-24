@@ -76,24 +76,37 @@ function expandHome(inputPath) {
   return path.join(os.homedir(), inputPath.slice(2));
 }
 
+function findJsonlFilesRecursive(dir) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    return results;
+  }
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...findJsonlFilesRecursive(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
 function listSessionFiles() {
-  const roots = ["~/.openclaw/sessions", "~/.agent/sessions"].map(expandHome);
+  const roots = [
+    "~/.openclaw/sessions",
+    "~/.openclaw/agents",
+    "~/.openclaw/cron/runs",
+    "~/.agent/sessions",
+  ].map(expandHome);
   const files = [];
 
   for (const root of roots) {
-    if (!fs.existsSync(root)) {
-      continue;
-    }
-    const entries = fs.readdirSync(root, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile()) {
-        continue;
-      }
-      if (!entry.name.endsWith(".jsonl")) {
-        continue;
-      }
-      files.push(path.join(root, entry.name));
-    }
+    files.push(...findJsonlFilesRecursive(root));
   }
 
   return files;

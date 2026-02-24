@@ -16,11 +16,24 @@ const path = require('path');
 // 配置
 const CONFIG = {
   journalPath: process.env.PHOENIXCLAW_JOURNAL_PATH || '/mnt/synology/zpro/notes/日记',
-  sessionsPath: process.env.OPENCLAW_SESSIONS_PATH || path.join(require('os').homedir(), '.openclaw/agents/main/sessions'),
+  sessionRoots: (process.env.OPENCLAW_SESSIONS_PATH || '').split(path.delimiter).filter(Boolean),
   configPath: path.join(require('os').homedir(), '.phoenixclaw/config.yaml'),
   timezone: 'Asia/Shanghai',
   defaultHour: 22  // 默认生成时间
 };
+
+/**
+ * 默认 session 搜索路径列表（覆盖所有已知位置）
+ */
+function getDefaultSessionRoots() {
+  const home = require('os').homedir();
+  return [
+    path.join(home, '.openclaw', 'sessions'),
+    path.join(home, '.openclaw', 'agents'),
+    path.join(home, '.openclaw', 'cron', 'runs'),
+    path.join(home, '.agent', 'sessions'),
+  ];
+}
 
 /**
  * 读取用户配置
@@ -74,20 +87,58 @@ function getLastJournalTime() {
 }
 
 /**
- * 读取所有 session 日志文件
+ * 递归查找目录下所有 .jsonl 文件
  */
-function readSessionLogs() {
-  const logs = [];
-  if (!fs.existsSync(CONFIG.sessionsPath)) {
-    console.error(`Sessions path not found: ${CONFIG.sessionsPath}`);
-    return logs;
+function findJsonlFiles(dir) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    return results;
   }
 
-  const files = fs.readdirSync(CONFIG.sessionsPath)
-    .filter(f => f.endsWith('.jsonl'))
-    .map(f => path.join(CONFIG.sessionsPath, f));
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...findJsonlFiles(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith('.jsonl')) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
 
-  for (const file of files) {
+/**
+ * 读取所有 session 日志文件（扫描多个目录 + 递归）
+ */
+function readSessionLogs() {
+  const roots = CONFIG.sessionRoots.length > 0
+    ? CONFIG.sessionRoots
+    : getDefaultSessionRoots();
+
+  const allFiles = [];
+  for (const root of roots) {
+    const files = findJsonlFiles(root);
+    allFiles.push(...files);
+    if (files.length > 0) {
+      console.log(`  [scan] ${root} → ${files.length} file(s)`);
+    }
+  }
+
+  if (allFiles.length === 0) {
+    console.error('No session log files found in any directory');
+    return [];
+  }
+
+  console.log(`  [scan] Total session files: ${allFiles.length}`);
+
+  const logs = [];
+  let parseErrors = 0;
+
+  for (const file of allFiles) {
     try {
       const content = fs.readFileSync(file, 'utf-8');
       const lines = content.split('\n').filter(line => line.trim());
@@ -96,13 +147,23 @@ function readSessionLogs() {
           const entry = JSON.parse(line);
           logs.push(entry);
         } catch (e) {
-          // Skip malformed lines
+          parseErrors++;
         }
       }
     } catch (e) {
       console.error(`Error reading ${file}:`, e.message);
     }
   }
+
+  if (parseErrors > 0) {
+    console.log(`  [scan] Skipped ${parseErrors} malformed line(s)`);
+  }
+
+  logs.sort((a, b) => {
+    const ta = new Date(a.timestamp || a.created_at || 0).getTime();
+    const tb = new Date(b.timestamp || b.created_at || 0).getTime();
+    return ta - tb;
+  });
 
   return logs;
 }
@@ -124,24 +185,44 @@ function filterRollingWindowMessages(logs, lastJournalTime) {
 }
 
 /**
+ * 从嵌套 message 结构中提取完整文本
+ */
+function extractText(entry) {
+  if (typeof entry.content === 'string') return entry.content;
+  if (entry.message && Array.isArray(entry.message.content)) {
+    return entry.message.content.map(c => c.text || '').join(' ');
+  }
+  if (Array.isArray(entry.content)) {
+    return entry.content.map(c => (typeof c === 'string' ? c : c.text || '')).join(' ');
+  }
+  return '';
+}
+
+/**
  * 判断消息是否是"有意义的"
  */
 function isMeaningfulMessage(entry) {
-  // 排除心跳检测
-  if (entry.role === 'system' && entry.content?.includes('HEARTBEAT_OK')) return false;
-  
-  // 排除 cron 完成通知
-  if (entry.content?.includes('Cron:') && entry.content?.includes('completed')) return false;
-  
-  // 排除纯系统消息
-  if (entry.role === 'system' && !entry.content?.includes('attached')) return false;
-  
+  const text = extractText(entry);
+
+  // 排除心跳检测 — 用户端：包含 "Read HEARTBEAT.md" 且包含 "reply HEARTBEAT_OK"
+  if (/Read HEARTBEAT\.md/i.test(text) && /reply HEARTBEAT_OK/i.test(text)) return false;
+
+  // 排除心跳检测 — 助手端：仅包含 "HEARTBEAT_OK"
+  if (/^\s*HEARTBEAT_OK\s*$/i.test(text)) return false;
+
+  // 排除 cron 系统消息
+  if ((entry.role === 'system' || entry.role === 'cron') &&
+      /cron job|nightly reflection|scheduler/i.test(text)) return false;
+
+  // 排除纯系统消息（保留带附件的系统消息）
+  if (entry.role === 'system' && !text.includes('attached')) return false;
+
   // 保留用户消息和助手回复
   if (entry.role === 'user' || entry.role === 'assistant') return true;
-  
+
   // 保留图片等媒体
   if (entry.type === 'image') return true;
-  
+
   return false;
 }
 
@@ -258,8 +339,9 @@ async function main() {
   }
 
   // 3. 读取会话日志
+  console.log('Scanning session directories...');
   const logs = readSessionLogs();
-  console.log(`Read ${logs.length} log entries`);
+  console.log(`Read ${logs.length} total log entries`);
 
   // 4. 过滤滚动窗口消息
   const windowStart = userConfig.rollingWindow ? lastJournalTime : new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -268,7 +350,12 @@ async function main() {
 
   // 5. 过滤有意义的消息
   const meaningfulMessages = windowMessages.filter(isMeaningfulMessage);
-  console.log(`Meaningful messages: ${meaningfulMessages.length}`);
+  const imageCount = meaningfulMessages.filter(m => m.type === 'image').length;
+  const textCount = meaningfulMessages.filter(m => m.type !== 'image').length;
+  console.log(`Meaningful messages: ${meaningfulMessages.length} (text: ${textCount}, images: ${imageCount})`);
+  const userCount = meaningfulMessages.filter(m => m.role === 'user').length;
+  const assistantCount = meaningfulMessages.filter(m => m.role === 'assistant').length;
+  console.log(`  user: ${userCount}, assistant: ${assistantCount}`);
 
   if (meaningfulMessages.length === 0) {
     console.log('No content to journal, skipping');
@@ -287,7 +374,19 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error('Error:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Error:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  findJsonlFiles,
+  readSessionLogs,
+  filterRollingWindowMessages,
+  isMeaningfulMessage,
+  extractMoments,
+  extractText,
+  getDefaultSessionRoots,
+};

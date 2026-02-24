@@ -1,0 +1,4 @@
+{"timestamp":"2026-02-23T11:00:00+08:00","role":"user","content":"帮我比较一下 GPT-4 和 Claude 3 的区别"}
+{"timestamp":"2026-02-23T11:01:00+08:00","role":"assistant","content":"两者各有优势，GPT-4 在代码生成方面很强，Claude 3 在长文本理解上表现出色"}
+{"timestamp":"2026-02-23T11:30:00+08:00","role":"user","content":"Read HEARTBEAT.md and reply HEARTBEAT_OK"}
+{"timestamp":"2026-02-23T11:30:01+08:00","role":"assistant","content":"HEARTBEAT_OK"}

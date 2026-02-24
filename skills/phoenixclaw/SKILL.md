@@ -38,7 +38,7 @@ PhoenixClaw follows a structured pipeline to ensure consistency and depth:
    - **Scan memory files (NEW):** Read `memory/YYYY-MM-DD.md` and `memory/YYYY-MM-DD-*.md` files for manually recorded daily reflections. These files contain personal thoughts, emotions, and context that users explicitly ask the AI to remember via commands like "记一下" (remember this). **CRITICAL**: Do not skip these files - they contain explicit user reflections that session logs may miss.
    - **Scan session logs:** Call `memory_get` for the current day's memory, then **CRITICAL: Scan ALL raw session logs and filter by message timestamp**. Session files are often split across multiple files. Do NOT classify images by session file `mtime`:
       ```bash
-      # Read all session logs from both OpenClaw locations, then filter by per-message timestamp
+      # Read all session logs from ALL known OpenClaw locations, then filter by per-message timestamp
       # Use timezone-aware epoch range to avoid UTC/local-day mismatches.
       TARGET_DAY="$(date +%Y-%m-%d)"
       TARGET_TZ="${TARGET_TZ:-Asia/Shanghai}"
@@ -55,7 +55,10 @@ print(int(start.timestamp()), int(end.timestamp()))
 PY
       )
 
-      for dir in "$HOME/.openclaw/sessions" "$HOME/.agent/sessions"; do
+      for dir in "$HOME/.openclaw/sessions" \
+                 "$HOME/.openclaw/agents" \
+                 "$HOME/.openclaw/cron/runs" \
+                 "$HOME/.agent/sessions"; do
         [ -d "$dir" ] || continue
         find "$dir" -name "*.jsonl" -print0
       done |
