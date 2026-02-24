@@ -159,6 +159,13 @@ function readSessionLogs() {
     console.log(`  [scan] Skipped ${parseErrors} malformed line(s)`);
   }
 
+  // Sort logs by timestamp to ensure chronological order across all directories
+  logs.sort((a, b) => {
+    const timeA = new Date(a.timestamp || a.created_at || 0);
+    const timeB = new Date(b.timestamp || b.created_at || 0);
+    return timeA - timeB;
+  });
+
   return logs;
 }
 
