@@ -76,24 +76,37 @@ function expandHome(inputPath) {
   return path.join(os.homedir(), inputPath.slice(2));
 }
 
+function findJsonlFilesRecursive(dir) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    return results;
+  }
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...findJsonlFilesRecursive(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
 function listSessionFiles() {
-  const roots = ["~/.openclaw/sessions", "~/.agent/sessions"].map(expandHome);
+  const roots = [
+    "~/.openclaw/sessions",
+    "~/.openclaw/agents",
+    "~/.openclaw/cron/runs",
+    "~/.agent/sessions",
+  ].map(expandHome);
   const files = [];
 
   for (const root of roots) {
-    if (!fs.existsSync(root)) {
-      continue;
-    }
-    const entries = fs.readdirSync(root, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile()) {
-        continue;
-      }
-      if (!entry.name.endsWith(".jsonl")) {
-        continue;
-      }
-      files.push(path.join(root, entry.name));
-    }
+    files.push(...findJsonlFilesRecursive(root));
   }
 
   return files;
@@ -136,8 +149,38 @@ function flattenText(value) {
   return "";
 }
 
+/**
+ * Get role from entry, handling nested message structure
+ * OpenClaw session logs store role in entry.message.role, not entry.role
+ */
+function getRole(entry) {
+  // Try entry.message.role first (OpenClaw format)
+  const nestedRole = entry.message?.role;
+  if (typeof nestedRole === "string") {
+    return nestedRole.toLowerCase();
+  }
+  // Fallback to entry.role for backward compatibility
+  const directRole = entry.role;
+  if (typeof directRole === "string") {
+    return directRole.toLowerCase();
+  }
+  return "";
+}
+
+/**
+ * Get content from entry, handling nested message structure
+ */
+function getContent(entry) {
+  // Try entry.message.content first (OpenClaw format)
+  if (entry.message?.content) {
+    return entry.message.content;
+  }
+  // Fallback to entry.content for backward compatibility
+  return entry.content;
+}
+
 function isLikelyUserEntry(entry) {
-  const role = typeof entry.role === "string" ? entry.role.toLowerCase() : "";
+  const role = getRole(entry);
   if (role === "user") {
     return true;
   }
@@ -156,7 +199,11 @@ function isLikelyUserEntry(entry) {
 }
 
 function isNoise(entry) {
-  const payloadText = flattenText(entry).toLowerCase();
+  // Check both nested and direct content
+  const nestedContent = flattenText(entry.message?.content);
+  const directContent = flattenText(entry.content);
+  const payloadText = (nestedContent + " " + directContent).toLowerCase();
+  
   const noiseTokens = [
     "heartbeat",
     "cron",
@@ -212,7 +259,8 @@ function auditDay({ day, tz, verbose }) {
       summary.matchedMessages += 1;
       summary.filesWithMatches.set(file, (summary.filesWithMatches.get(file) || 0) + 1);
 
-      const role = typeof entry.role === "string" ? entry.role.toLowerCase() : "";
+      // Use getRole() to handle nested message structure
+      const role = getRole(entry);
       if (role === "assistant") {
         summary.assistantMessages += 1;
       }
@@ -232,7 +280,8 @@ function auditDay({ day, tz, verbose }) {
 
       if (verbose) {
         const tsText = entry.timestamp || entry.created_at;
-        console.log(`[${path.basename(file)}:${i + 1}] ${tsText} role=${entry.role || "?"} type=${entry.type || "?"}`);
+        const displayRole = getRole(entry) || "?";
+        console.log(`[${path.basename(file)}:${i + 1}] ${tsText} role=${displayRole} type=${entry.type || "?"}`);
       }
     }
   }
