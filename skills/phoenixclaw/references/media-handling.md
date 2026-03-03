@@ -52,7 +52,7 @@ for dir in "$HOME/.openclaw/sessions" \
 done |
   xargs -0 jq -cr --argjson start "$START_EPOCH" --argjson end "$END_EPOCH" '
     (.timestamp // .created_at // empty) as $ts
-    | ($ts | fromdateiso8601?) as $epoch
+    | ($ts | split(".")[0] + "Z" | fromdateiso8601?) as $epoch
     | select($epoch != null and $epoch >= $start and $epoch < $end)
   '
 ```
@@ -69,7 +69,7 @@ for dir in "$HOME/.openclaw/sessions" \
 done |
   xargs -0 jq -r --argjson start "$START_EPOCH" --argjson end "$END_EPOCH" '
     (.timestamp // .created_at // empty) as $ts
-    | ($ts | fromdateiso8601?) as $epoch
+    | ($ts | split(".")[0] + "Z" | fromdateiso8601?) as $epoch
     | select($epoch != null and $epoch >= $start and $epoch < $end and .type == "image")
     | (.file_path // .url)
   '
