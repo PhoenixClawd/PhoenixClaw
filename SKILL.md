@@ -9,7 +9,7 @@ description: |
   - User asks for pattern analysis ("Analyze my patterns", "How am I doing?")
   - User requests summaries ("Generate weekly/monthly summary")
 metadata:
-  version: 0.0.14
+  version: 0.0.18
 ---
 
 # PhoenixClaw: Zero-Tag Passive Journaling
@@ -55,17 +55,28 @@ print(int(start.timestamp()), int(end.timestamp()))
 PY
       )
 
-      for dir in "$HOME/.openclaw/sessions" \
-                 "$HOME/.openclaw/agents" \
-                 "$HOME/.openclaw/cron/runs" \
-                 "$HOME/.agent/sessions"; do
-        [ -d "$dir" ] || continue
-        find "$dir" -name "*.jsonl" -print0
-      done |
-        xargs -0 jq -cr --argjson start "$START_EPOCH" --argjson end "$END_EPOCH" '
-          (.timestamp // .created_at // empty) as $ts
-          | ($ts | split(".")[0] + "Z" | fromdateiso8601?) as $epoch
-          | select($epoch != null and $epoch >= $start and $epoch < $end)
+      # Scan ALL known OpenClaw session locations (supports multi-agent architecture)
+      {
+        # Main agent sessions
+        [ -d "$HOME/.openclaw/agents/main/sessions" ] && find "$HOME/.openclaw/agents/main/sessions" -maxdepth 1 -name "*.jsonl" -print0 2>/dev/null
+        # Other agent sessions (openmind, etc.)
+        [ -d "$HOME/.openclaw/agents" ] && find "$HOME/.openclaw/agents" -mindepth 3 -maxdepth 3 -path "*/sessions/*.jsonl" -print0 2>/dev/null
+        # Cron runs
+        [ -d "$HOME/.openclaw/cron/runs" ] && find "$HOME/.openclaw/cron/runs" -maxdepth 1 -name "*.jsonl" -print0 2>/dev/null
+        # Legacy sessions directory
+        [ -d "$HOME/.openclaw/sessions" ] && find "$HOME/.openclaw/sessions" -maxdepth 1 -name "*.jsonl" -print0 2>/dev/null
+        # Legacy .agent directory
+        [ -d "$HOME/.agent/sessions" ] && find "$HOME/.agent/sessions" -maxdepth 1 -name "*.jsonl" -print0 2>/dev/null
+      } |
+        xargs -0 jq -cr --argjson s "$START_EPOCH" --argjson e "$END_EPOCH" '
+          # Support both ISO string timestamps and Unix millisecond timestamps
+          ((.timestamp // .created_at // .message.timestamp // empty) | 
+            if type == "number" then (. / 1000 | floor)
+            elif type == "string" then (split(".")[0] + "Z" | fromdateiso8601?)
+            else empty
+            end
+          ) as $epoch
+          | select($epoch != null and $epoch >= $s and $epoch < $e)
         '
       ```
       Read **all matching files** regardless of their numeric naming (e.g., file_22, file_23 may be earlier in name but still contain today's messages).
