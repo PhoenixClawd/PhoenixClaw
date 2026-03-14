@@ -125,7 +125,37 @@ function safeJsonParse(line, file, lineNumber) {
 }
 
 function getTimestamp(entry) {
-  const ts = entry.timestamp || entry.created_at;
+  // Try multiple timestamp sources (OpenClaw format and legacy)
+  let ts = entry.timestamp || entry.created_at;
+  
+  // Fallback to nested message.timestamp (OpenClaw session logs)
+  if (!ts && entry.message?.timestamp) {
+    ts = entry.message.timestamp;
+  }
+  
+  if (ts === null || ts === undefined) {
+    return null;
+  }
+  
+  // Handle Unix milliseconds (number format)
+  if (typeof ts === "number") {
+    // Detect if it's milliseconds (> year 2000 in ms = 946684800000)
+    if (ts > 946684800000) {
+      const d = new Date(ts);
+      if (Number.isNaN(d.getTime())) {
+        return null;
+      }
+      return d;
+    }
+    // Assume seconds if smaller number
+    const d = new Date(ts * 1000);
+    if (Number.isNaN(d.getTime())) {
+      return null;
+    }
+    return d;
+  }
+  
+  // Handle string format
   if (typeof ts !== "string" || ts.length === 0) {
     return null;
   }
