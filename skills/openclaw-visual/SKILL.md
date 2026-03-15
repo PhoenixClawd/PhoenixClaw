@@ -11,7 +11,7 @@ description: |
 depends:
   - node-html-to-image
 metadata:
-  version: 0.0.1
+  version: 0.0.2
 ---
 
 # OpenClaw Visual - 精美图文生成器
