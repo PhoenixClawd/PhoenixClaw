@@ -39,7 +39,7 @@ PhoenixClaw follows a structured pipeline to ensure consistency and depth:
    - Call `memory_get` for the current day's memory
    - **CRITICAL: Scan ALL raw session logs and filter by message timestamp**. Session files are often split across multiple files. Do NOT classify images by session file `mtime`:
       ```bash
-      # Read all session logs from both OpenClaw locations, then filter by per-message timestamp
+      # Read all session logs from all OpenClaw locations (multi-agent support), then filter by per-message timestamp
       # Use timezone-aware epoch range to avoid UTC/local-day mismatches.
       TARGET_DAY="$(date +%Y-%m-%d)"
       TARGET_TZ="${TARGET_TZ:-Asia/Shanghai}"
@@ -56,7 +56,8 @@ print(int(start.timestamp()), int(end.timestamp()))
 PY
       )
 
-      for dir in "$HOME/.openclaw/sessions" "$HOME/.agent/sessions"; do
+      # Scan ALL session directories (multi-agent architecture support)
+      for dir in "$HOME/.openclaw/sessions" "$HOME/.openclaw/agents" "$HOME/.openclaw/cron/runs" "$HOME/.agent/sessions"; do
         [ -d "$dir" ] || continue
         find "$dir" -name "*.jsonl" -print0
       done |
